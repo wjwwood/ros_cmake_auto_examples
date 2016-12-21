@@ -1,0 +1,4 @@
+string package_name
+string node_type_name
+---
+bool success
