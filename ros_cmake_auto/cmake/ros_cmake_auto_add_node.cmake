@@ -1,4 +1,4 @@
-find_package(rclcpp QUIET REQUIRED)
+find_package(rclcpp_components QUIET REQUIRED)
 
 macro(ros_cmake_auto_add_node target_name)
   cmake_parse_arguments(ARG
@@ -30,7 +30,7 @@ macro(ros_cmake_auto_add_node target_name)
     ${ros_cmake_auto_add_node_EXCLUDE_FROM_ALL}
     ${ros_cmake_auto_add_node_NO_TARGET_LINK_LIBRARIES})
   rclcpp_register_node_plugins(${ARG_NODE_LIBRARY_TARGET_NAME} ${ARG_CLASS_NAME})
-  rclcpp_create_node_main(${target_name}
+  rclcpp_components_create_node_main(${target_name}
     ${ARG_NODE_LIBRARY_TARGET_NAME}
     ${ros_cmake_auto_add_node_EXCLUDE_FROM_ALL})
 endmacro()

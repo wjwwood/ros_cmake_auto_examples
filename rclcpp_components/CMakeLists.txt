@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(rclcpp_components)
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(class_loader REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -23,10 +24,16 @@ macro(target)
     get_rclcpp_information("${rmw_implementation}" "rclcpp${target_suffix}")
   endif()
   add_library(rclcpp_component_container${target_suffix} src/rclcpp_component_container.cpp)
-  ament_target_dependencies(${PROJECT_NAME}${target_suffix}
+  ament_target_dependencies(rclcpp_component_container${target_suffix}
+    "ament_index_cpp"
     "class_loader"
     "rclcpp${target_suffix}"
   )
+  get_rmw_typesupport(typesupport_impls "${rmw_implementation}" LANGUAGE "cpp")
+  foreach(typesupport_impl ${typesupport_impls})
+    rosidl_target_interfaces(rclcpp_component_container${target_suffix}
+      ${PROJECT_NAME} ${typesupport_impl})
+  endforeach()
 
   install(
     TARGETS rclcpp_component_container${target_suffix}
@@ -45,20 +52,20 @@ ament_export_dependencies(rclcpp)
 ament_export_include_directories(include)
 
 ament_package(
-  CONFIG_EXTRAS rclcpp-extras.cmake
+  CONFIG_EXTRAS rclcpp_components-extras.cmake
 )
 
-# install(
-#   DIRECTORY cmake
-#   DESTINATION share/${PROJECT_NAME}
-# )
+install(
+  DIRECTORY cmake
+  DESTINATION share/${PROJECT_NAME}
+)
 
-# install(
-#   DIRECTORY include/
-#   DESTINATION include
-# )
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
 
-# install(
-#   FILES src/rclcpp/node_main.cpp
-#   DESTINATION src/rclcpp
-# )
+install(
+  FILES src/node_main.cpp
+  DESTINATION src/rclcpp_components
+)

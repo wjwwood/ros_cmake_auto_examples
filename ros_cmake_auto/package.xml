@@ -14,7 +14,7 @@
   <buildtool_export_depend>ament_cmake_auto</buildtool_export_depend>
 
   <depend>class_loader</depend>
-  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

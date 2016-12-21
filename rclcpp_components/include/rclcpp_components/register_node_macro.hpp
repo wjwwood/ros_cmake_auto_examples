@@ -14,15 +14,6 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-class EmptyNode : public rclcpp::Node
-{
-public:
-  EmptyNode() : rclcpp::Node("empty_node") {
-    printf("In EmptyNode()!\n");
-    /* Your code goes here. */
-  }
-};
+#include "class_loader/class_loader_register_macro.h"
 
-#include "rclcpp_components/register_node_macro.hpp"
-
-RCLCPP_REGISTER_NODE(EmptyNode)
+#define RCLCPP_REGISTER_NODE(NodeT) CLASS_LOADER_REGISTER_CLASS(NodeT, rclcpp::Node)

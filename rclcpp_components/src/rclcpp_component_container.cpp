@@ -45,7 +45,7 @@ namespace fs = std::experimental::filesystem;
 
 #include "ament_index_cpp/get_resource.hpp"
 #include "class_loader/class_loader.h"
-#include "composition/srv/load_node.hpp"
+#include "rclcpp_components/srv/load_node_component.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #ifdef RMW_IMPLEMENTATION_SUFFIX
@@ -84,12 +84,12 @@ int main(int argc, char * argv[])
   std::vector<class_loader::ClassLoader *> loaders;
   std::vector<std::shared_ptr<rclcpp::Node>> nodes;
 
-  auto server = node->create_service<composition::srv::LoadNode>(
+  auto server = node->create_service<rclcpp_components::srv::LoadNodeComponent>(
     "load_node",
     [&exec, &loaders, &nodes](
       const std::shared_ptr<rmw_request_id_t>,
-      const std::shared_ptr<composition::srv::LoadNode::Request> request,
-      std::shared_ptr<composition::srv::LoadNode::Response> response)
+      const std::shared_ptr<rclcpp_components::srv::LoadNodeComponent::Request> request,
+      std::shared_ptr<rclcpp_components::srv::LoadNodeComponent::Response> response)
   {
     // get node plugin resource from package
     std::string content;
@@ -100,7 +100,7 @@ int main(int argc, char * argv[])
       return;
     }
 
-    std::string plugin_name = request->plugin_name + executable_suffix;
+    std::string plugin_name = request->node_class_name + executable_suffix;
     std::vector<std::string> lines = split(content, '\n', true);
     for (auto line : lines) {
       std::vector<std::string> parts = split(line, ';');
