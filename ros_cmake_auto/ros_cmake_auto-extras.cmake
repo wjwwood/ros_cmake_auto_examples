@@ -15,6 +15,6 @@
 # copied from ros_cmake_auto/ros_cmake_auto-extras.cmake
 
 include("${ros_cmake_auto_DIR}/ros_cmake_auto_add_node.cmake")
+include("${ros_cmake_auto_DIR}/ros_cmake_auto_alias_to_rca.cmake")
 include("${ros_cmake_auto_DIR}/ros_cmake_auto_end.cmake")
 include("${ros_cmake_auto_DIR}/ros_cmake_auto_start.cmake")
-include("${ros_cmake_auto_DIR}/using_ros_cmake_auto_as_rca.cmake")
