@@ -12,13 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLCPP_COMPONENTS__REGISTER_NODE_MACRO_HPP_
-#define RCLCPP_COMPONENTS__REGISTER_NODE_MACRO_HPP_
+#ifndef RCLCPP_COMPONENTS__UTILITIES__GET_NODE_PLUGINS_FOR_PACKAGE_HPP_
+#define RCLCPP_COMPONENTS__UTILITIES__GET_NODE_PLUGINS_FOR_PACKAGE_HPP_
 
-#include "rclcpp/rclcpp.hpp"
+#include <string>
+#include <vector>
 
-#include "class_loader/class_loader_register_macro.h"
+namespace rclcpp_components
+{
+namespace utilities
+{
 
-#define RCLCPP_REGISTER_NODE(NodeT) CLASS_LOADER_REGISTER_CLASS(NodeT, rclcpp::Node)
+std::vector<std::pair<std::string, std::string>>
+get_node_plugins_for_package(
+  const std::string & package_name,
+  std::string * package_prefix = nullptr);
 
-#endif  // RCLCPP_COMPONENTS__REGISTER_NODE_MACRO_HPP_
+}  // namespace utilities
+}  // namespace rclcpp_components
+
+#endif  // RCLCPP_COMPONENTS__UTILITIES__GET_NODE_PLUGINS_FOR_PACKAGE_HPP_

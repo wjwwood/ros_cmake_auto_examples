@@ -15,8 +15,16 @@ endif()
 
 include_directories(include)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
+rosidl_generate_interfaces(${PROJECT_NAME}_interfaces
   "srv/LoadNodeComponent.srv"
+)
+
+add_library(${PROJECT_NAME} SHARED
+  src/rclcpp_components/utilities/get_node_plugins_for_package.cpp
+  src/rclcpp_components/utilities/split.cpp
+)
+ament_target_dependencies(${PROJECT_NAME}
+  "ament_index_cpp"
 )
 
 macro(target)
@@ -29,10 +37,11 @@ macro(target)
     "class_loader"
     "rclcpp${target_suffix}"
   )
+  target_link_libraries(rclcpp_component_container${target_suffix} ${PROJECT_NAME})
   get_rmw_typesupport(typesupport_impls "${rmw_implementation}" LANGUAGE "cpp")
   foreach(typesupport_impl ${typesupport_impls})
     rosidl_target_interfaces(rclcpp_component_container${target_suffix}
-      ${PROJECT_NAME} ${typesupport_impl})
+      ${PROJECT_NAME}_interfaces ${typesupport_impl})
   endforeach()
 
   install(
@@ -51,8 +60,16 @@ ament_export_dependencies(rclcpp)
 
 ament_export_include_directories(include)
 
+ament_export_libraries(${PROJECT_NAME})
+
 ament_package(
   CONFIG_EXTRAS rclcpp_components-extras.cmake
+)
+
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 install(

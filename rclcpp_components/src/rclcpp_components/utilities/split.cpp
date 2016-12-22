@@ -12,13 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLCPP_COMPONENTS__REGISTER_NODE_MACRO_HPP_
-#define RCLCPP_COMPONENTS__REGISTER_NODE_MACRO_HPP_
+#include "rclcpp_components/utilities/split.hpp"
 
-#include "rclcpp/rclcpp.hpp"
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include "class_loader/class_loader_register_macro.h"
-
-#define RCLCPP_REGISTER_NODE(NodeT) CLASS_LOADER_REGISTER_CLASS(NodeT, rclcpp::Node)
-
-#endif  // RCLCPP_COMPONENTS__REGISTER_NODE_MACRO_HPP_
+std::vector<std::string>
+rclcpp_components::utilities::split(const std::string & s, char delim, bool skip_empty)
+{
+  std::vector<std::string> result;
+  std::stringstream ss;
+  ss.str(s);
+  std::string item;
+  while (std::getline(ss, item, delim)) {
+    if (skip_empty && item == "") {
+      continue;
+    }
+    result.push_back(item);
+  }
+  return result;
+}

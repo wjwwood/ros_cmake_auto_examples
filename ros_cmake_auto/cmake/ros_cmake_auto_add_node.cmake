@@ -32,5 +32,6 @@ macro(ros_cmake_auto_add_node target_name)
   rclcpp_register_node_plugins(${ARG_NODE_LIBRARY_TARGET_NAME} ${ARG_CLASS_NAME})
   rclcpp_components_create_node_main(${target_name}
     ${ARG_NODE_LIBRARY_TARGET_NAME}
+    ${ARG_CLASS_NAME}
     ${ros_cmake_auto_add_node_EXCLUDE_FROM_ALL})
 endmacro()

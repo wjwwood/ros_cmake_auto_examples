@@ -12,41 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef __clang__
-// TODO(dirk-thomas) custom implementation until we can use libc++ 3.9
-#include <string>
-namespace fs
-{
-class path
-{
-public:
-  explicit path(const std::string & p)
-  : path_(p)
-  {}
-  bool is_absolute()
-  {
-    return path_[0] == '/';
-  }
-
-private:
-  std::string path_;
-};
-}  // namespace fs
-#else
-# include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-#endif
-
-#include <cstring>
 #include <memory>
-#include <sstream>
-#include <string>
-#include <vector>
 
-#include "ament_index_cpp/get_resource.hpp"
-#include "class_loader/class_loader.h"
-#include "rclcpp_components/srv/load_node_component.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/srv/load_node_component.hpp"
+#include "rclcpp_components/utilities/create_node_instance.hpp"
+
+using rclcpp_components::utilities::create_node_instance;
 
 #ifdef RMW_IMPLEMENTATION_SUFFIX
 #define STRINGIFY_(s) #s
@@ -56,119 +28,49 @@ namespace fs = std::experimental::filesystem;
 #endif
 const char * executable_suffix = STRINGIFY(RMW_IMPLEMENTATION_SUFFIX);
 
-
-std::vector<std::string> split(
-  const std::string & s, char delim, bool skip_empty = false)
-{
-  std::vector<std::string> result;
-  std::stringstream ss;
-  ss.str(s);
-  std::string item;
-  while (std::getline(ss, item, delim)) {
-    if (skip_empty && item == "") {
-      continue;
-    }
-    result.push_back(item);
-  }
-  return result;
-}
-
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("api_composition");
+  auto node = rclcpp::Node::make_shared("node_component_container");
 
   rclcpp::executors::SingleThreadedExecutor exec;
   exec.add_node(node);
 
-  std::vector<class_loader::ClassLoader *> loaders;
-  std::vector<std::shared_ptr<rclcpp::Node>> nodes;
+  std::vector<std::unique_ptr<rclcpp_components::utilities::NodeInstance>> node_instances;
 
   auto server = node->create_service<rclcpp_components::srv::LoadNodeComponent>(
     "load_node",
-    [&exec, &loaders, &nodes](
+    [&exec, &node_instances](
       const std::shared_ptr<rmw_request_id_t>,
       const std::shared_ptr<rclcpp_components::srv::LoadNodeComponent::Request> request,
       std::shared_ptr<rclcpp_components::srv::LoadNodeComponent::Response> response)
   {
-    // get node plugin resource from package
-    std::string content;
-    std::string base_path;
-    if (!ament_index_cpp::get_resource("node_plugin", request->package_name, content, &base_path)) {
-      fprintf(stderr, "Could not find requested resource in ament index\n");
+    try {
+      auto node_instance =
+        create_node_instance(request->package_name, request->node_class_name, executable_suffix);
+      exec.add_node(node_instance->node);
+      node_instances.emplace_back(std::move(node_instance));
+    } catch (const std::exception & ex) {
+      fprintf(stderr,
+        "Failed to load node component '%s/%s': %s\n",
+        request->package_name.c_str(), request->node_class_name.c_str(), ex.what());
+      response->success = false;
+      return;
+    } catch (...) {
+      fprintf(stderr,
+        "Failed to load node component '%s/%s': Unknown exception\n",
+        request->package_name.c_str(), request->node_class_name.c_str());
       response->success = false;
       return;
     }
-
-    std::string plugin_name = request->node_class_name + executable_suffix;
-    std::vector<std::string> lines = split(content, '\n', true);
-    for (auto line : lines) {
-      std::vector<std::string> parts = split(line, ';');
-      if (parts.size() != 2) {
-        fprintf(stderr, "Invalid resource entry\n");
-        response->success = false;
-        return;
-      }
-      // match plugin name with the same rmw suffix as this executable
-      if (parts[0] != plugin_name) {
-        continue;
-      }
-
-      // remove rmw suffix from plugin name to match registered class name
-      std::string class_name = parts[0].substr(
-        0, parts[0].length() - strlen(executable_suffix));
-
-      // load node plugin
-      std::string library_path = parts[1];
-      if (!fs::path(library_path).is_absolute()) {
-        library_path = base_path + "/" + library_path;
-      }
-      printf("Load library %s\n", library_path.c_str());
-      class_loader::ClassLoader * loader;
-      try {
-        loader = new class_loader::ClassLoader(library_path);
-      } catch (const std::exception & ex) {
-        fprintf(stderr, "Failed to load library: %s\n", ex.what());
-        response->success = false;
-        return;
-      } catch (...) {
-        fprintf(stderr, "Failed to load library\n");
-        response->success = false;
-        return;
-      }
-      auto classes = loader->getAvailableClasses<rclcpp::Node>();
-      for (auto clazz : classes) {
-        if (clazz == class_name) {
-          printf("Instantiate class %s\n", clazz.c_str());
-          auto node = loader->createInstance<rclcpp::Node>(clazz);
-          exec.add_node(node);
-          nodes.push_back(node);
-          loaders.push_back(loader);
-          response->success = true;
-          return;
-        }
-      }
-
-      // no matching class found in loader
-      delete loader;
-      fprintf(
-        stderr, "Failed to find class with the requested plugin name '%s' in "
-        "the loaded library\n",
-        plugin_name.c_str());
-      response->success = false;
-      return;
-    }
-    fprintf(
-      stderr, "Failed to find plugin name '%s' in prefix '%s'\n",
-      plugin_name.c_str(), base_path.c_str());
-    response->success = false;
+    response->success = true;
   });
 
   exec.spin();
 
-  for (auto node : nodes) {
-    exec.remove_node(node);
+  for (auto & node_instance : node_instances) {
+    exec.remove_node(node_instance->node);
   }
-  nodes.clear();
+  node_instances.clear();
   return 0;
 }
