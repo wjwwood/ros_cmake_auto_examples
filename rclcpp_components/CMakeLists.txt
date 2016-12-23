@@ -31,7 +31,7 @@ macro(target)
   if(NOT target_suffix STREQUAL "")
     get_rclcpp_information("${rmw_implementation}" "rclcpp${target_suffix}")
   endif()
-  add_library(rclcpp_component_container${target_suffix} src/rclcpp_component_container.cpp)
+  add_executable(rclcpp_component_container${target_suffix} src/rclcpp_component_container.cpp)
   ament_target_dependencies(rclcpp_component_container${target_suffix}
     "ament_index_cpp"
     "class_loader"

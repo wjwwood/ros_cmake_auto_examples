@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <memory>
+#include <string>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_components/srv/load_node_component.hpp"
@@ -28,9 +29,23 @@ using rclcpp_components::utilities::create_node_instance;
 #endif
 const char * executable_suffix = STRINGIFY(RMW_IMPLEMENTATION_SUFFIX);
 
+using namespace std::string_literals;
+
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
+
+  if (argc != 3) {
+    fprintf(stderr,
+      "incorrect number of arguments, usage: 'rclcpp_component_container --name <name>'\n");
+    return 1;
+  }
+  if ("-n"s != argv[1] && "--name"s != argv[1]) {
+    fprintf(stderr,
+      "expected '-n' or '--name' as the second argument, got '%s'\n", argv[1]);
+    return 1;
+  }
+
   auto node = rclcpp::Node::make_shared("node_component_container");
 
   rclcpp::executors::SingleThreadedExecutor exec;
@@ -38,8 +53,9 @@ int main(int argc, char * argv[])
 
   std::vector<std::unique_ptr<rclcpp_components::utilities::NodeInstance>> node_instances;
 
+  std::string service_name = argv[2] + "__load_node_component"s;
   auto server = node->create_service<rclcpp_components::srv::LoadNodeComponent>(
-    "load_node",
+    service_name,
     [&exec, &node_instances](
       const std::shared_ptr<rmw_request_id_t>,
       const std::shared_ptr<rclcpp_components::srv::LoadNodeComponent::Request> request,
