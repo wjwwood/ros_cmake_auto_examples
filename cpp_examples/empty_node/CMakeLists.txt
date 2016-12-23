@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(examples_empty_node)
+project(empty_node)
 
 find_package(ros_cmake_auto REQUIRED)
 ros_cmake_auto_alias_to_rca()

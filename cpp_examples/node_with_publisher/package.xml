@@ -3,7 +3,7 @@
   href="http://download.ros.org/schema/package_format2.xsd"
   schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
-  <name>examples_node_with_publisher</name>
+  <name>node_with_publisher</name>
   <version>0.0.0</version>
   <description>
     Example package with a Node that contains a publisher called node_with_publisher.
