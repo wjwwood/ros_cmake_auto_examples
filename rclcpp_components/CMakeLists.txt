@@ -27,32 +27,22 @@ ament_target_dependencies(${PROJECT_NAME}
   "ament_index_cpp"
 )
 
-macro(target)
-  if(NOT target_suffix STREQUAL "")
-    get_rclcpp_information("${rmw_implementation}" "rclcpp${target_suffix}")
-  endif()
-  add_executable(rclcpp_component_container${target_suffix} src/rclcpp_component_container.cpp)
-  ament_target_dependencies(rclcpp_component_container${target_suffix}
-    "ament_index_cpp"
-    "class_loader"
-    "rclcpp${target_suffix}"
-  )
-  target_link_libraries(rclcpp_component_container${target_suffix} ${PROJECT_NAME})
-  get_rmw_typesupport(typesupport_impls "${rmw_implementation}" LANGUAGE "cpp")
-  foreach(typesupport_impl ${typesupport_impls})
-    rosidl_target_interfaces(rclcpp_component_container${target_suffix}
-      ${PROJECT_NAME}_interfaces ${typesupport_impl})
-  endforeach()
+add_executable(rclcpp_component_container src/rclcpp_component_container.cpp)
+ament_target_dependencies(rclcpp_component_container
+  "ament_index_cpp"
+  "class_loader"
+  "rclcpp"
+)
+target_link_libraries(rclcpp_component_container ${PROJECT_NAME})
+rosidl_target_interfaces(rclcpp_component_container
+  ${PROJECT_NAME}_interfaces "rosidl_typesupport_cpp")
 
-  install(
-    TARGETS rclcpp_component_container${target_suffix}
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
-  )
-endmacro()
-
-call_for_each_rmw_implementation(target GENERATE_DEFAULT)
+install(
+  TARGETS rclcpp_component_container
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(class_loader)
