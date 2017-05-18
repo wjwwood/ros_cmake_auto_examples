@@ -35,5 +35,8 @@ function(rclcpp_components_create_node_main
     ${node_library_target}
     ${rclcpp_components_LIBRARIES}
   )
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(${node_executable_target_name} "stdc++fs")
+  endif()
   install(TARGETS ${node_executable_target_name} DESTINATION bin)
 endfunction()
