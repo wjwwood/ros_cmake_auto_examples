@@ -26,6 +26,9 @@ add_library(${PROJECT_NAME} SHARED
 ament_target_dependencies(${PROJECT_NAME}
   "ament_index_cpp"
 )
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  target_link_libraries(${PROJECT_NAME} "stdc++fs")
+endif()
 
 add_executable(rclcpp_component_container src/rclcpp_component_container.cpp)
 ament_target_dependencies(rclcpp_component_container

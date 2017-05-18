@@ -14,6 +14,7 @@
 
 #include "rclcpp_components/utilities/get_node_plugins_for_package.hpp"
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
